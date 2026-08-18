@@ -1,0 +1,44 @@
+name: AutoDisc Drop
+on:
+  push:
+    branches:
+      - autodisc-hello-20260817
+permissions:
+  contents: read
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Create AutoDisc Drop
+        shell: bash
+        run: |
+          set -euo pipefail
+          RESPONSE=$(curl -fsS -X POST https://api.autodisc.xyz/api/v1/drops \
+            -H 'Content-Type: application/json' \
+            -d '{"source":{"kind":"github","url":"https://github.com/yoits9090/test","ref":"autodisc-hello-20260817"},"lifetime_hours":24,"requested_mode":"auto"}')
+          STATUS_URL=$(printf '%s' "$RESPONSE" | jq -r '.status_url')
+          CONTROL_TOKEN=$(printf '%s' "$RESPONSE" | jq -r '.control_token')
+          CLAIM_URL=$(printf '%s' "$RESPONSE" | jq -r '.claim_url')
+          EXPIRES_AT=$(printf '%s' "$RESPONSE" | jq -r '.expires_at')
+          echo "::add-mask::$CONTROL_TOKEN"
+          echo "claim_url=$CLAIM_URL"
+          echo "expires_at=$EXPIRES_AT"
+          for i in $(seq 1 60); do
+            STATUS=$(curl -fsS "$STATUS_URL" -H "Authorization: Bearer $CONTROL_TOKEN")
+            STATE=$(printf '%s' "$STATUS" | jq -r '.status')
+            echo "status=$STATE"
+            if [ "$STATE" = "ready" ]; then
+              PUBLIC_URL=$(printf '%s' "$STATUS" | jq -r '.public_url')
+              echo "public_url=$PUBLIC_URL"
+              echo "claim_url=$CLAIM_URL"
+              echo "expires_at=$EXPIRES_AT"
+              exit 0
+            fi
+            if [ "$STATE" = "failed" ]; then
+              printf '%s\n' "$STATUS" | jq 'del(.control_token)'
+              exit 1
+            fi
+            sleep 5
+          done
+          echo 'Timed out waiting for AutoDisc Drop' >&2
+          exit 1
