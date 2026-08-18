@@ -1,0 +1,9 @@
+{
+  "status": "deploying",
+  "attempt": 1,
+  "drop_id": "0a732e23-5a0a-4c58-b22e-07ade6797920",
+  "public_url": "https://test-1703.autodisc.xyz",
+  "claim_url": "https://autodisc.xyz/claim/0a732e23-5a0a-4c58-b22e-07ade6797920#token=dropclaim_live_y0-YMbncCJfKShn1d4Eu0PkB1ESSuXRp-Fh8ourVojs",
+  "expires_at": "2026-08-19T04:00:34.754581+00:00",
+  "previous_attempts": []
+}
